@@ -1,0 +1,25 @@
+{
+  "name": "minty-ytp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MintyYTP streams videos through a Next.js server using yt-dlp and ffmpeg.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "ffmpeg-static": "latest",
+    "lucide-react": "latest",
+    "next": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "youtube-dl-exec": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "typescript": "latest"
+  }
+}
