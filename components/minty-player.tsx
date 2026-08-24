@@ -42,7 +42,8 @@ export function MintyPlayer({
   const [volume, setVolume] = useState(0.85);
   const [progress, setProgress] = useState(0);
   const [streamDuration, setStreamDuration] = useState(0);
-  const [bufferedRanges, setBufferedRanges] = useState<Array<{ start: number; end: number }>>([]);
+  const [bufferedRanges, setBufferedRanges] = useState<TimeRange[]>([]);
+  const [seekableRanges, setSeekableRanges] = useState<TimeRange[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const timelineDuration = totalDuration || streamDuration;
@@ -80,19 +81,12 @@ export function MintyPlayer({
     setProgress(0);
     setStreamDuration(0);
     setBufferedRanges([]);
+    setSeekableRanges([]);
   }, [src]);
 
   function refreshBufferedRanges(video: HTMLVideoElement) {
-    const ranges: Array<{ start: number; end: number }> = [];
-
-    for (let index = 0; index < video.buffered.length; index++) {
-      ranges.push({
-        start: video.buffered.start(index),
-        end: video.buffered.end(index)
-      });
-    }
-
-    setBufferedRanges(ranges);
+    setBufferedRanges(readTimeRanges(video.buffered));
+    setSeekableRanges(readTimeRanges(video.seekable));
   }
 
   async function togglePlayback() {
@@ -115,8 +109,16 @@ export function MintyPlayer({
       return;
     }
 
-    video.currentTime = value;
-    setProgress(value);
+    if (!canSeekTo(value, video.currentTime, seekableRanges, bufferedRanges)) {
+      setProgress(video.currentTime || 0);
+      return;
+    }
+
+    if ("fastSeek" in video && typeof video.fastSeek === "function") {
+      video.fastSeek(value);
+    } else {
+      video.currentTime = value;
+    }
   }
 
   function restart() {
@@ -180,6 +182,11 @@ export function MintyPlayer({
         onDurationChange={(event) => {
           const duration = event.currentTarget.duration;
           setStreamDuration(Number.isFinite(duration) ? duration : 0);
+          refreshBufferedRanges(event.currentTarget);
+        }}
+        onSeeked={(event) => {
+          setProgress(event.currentTarget.currentTime || 0);
+          refreshBufferedRanges(event.currentTarget);
         }}
         onProgress={(event) => refreshBufferedRanges(event.currentTarget)}
         onTimeUpdate={(event) => {
@@ -342,6 +349,44 @@ export function MintyPlayer({
         </div>
       </div>
     </div>
+  );
+}
+
+type TimeRange = {
+  start: number;
+  end: number;
+};
+
+function readTimeRanges(timeRanges: TimeRanges) {
+  const ranges: TimeRange[] = [];
+
+  for (let index = 0; index < timeRanges.length; index++) {
+    ranges.push({
+      start: timeRanges.start(index),
+      end: timeRanges.end(index)
+    });
+  }
+
+  return ranges;
+}
+
+function canSeekTo(
+  value: number,
+  currentTime: number,
+  seekableRanges: TimeRange[],
+  bufferedRanges: TimeRange[]
+) {
+  if (!Number.isFinite(value) || value < 0) {
+    return false;
+  }
+
+  const ranges = seekableRanges.length ? seekableRanges : bufferedRanges;
+  if (!ranges.length) {
+    return Math.abs(value - currentTime) < 0.75;
+  }
+
+  return ranges.some(
+    (range) => value >= Math.max(0, range.start - 0.25) && value <= range.end + 0.25
   );
 }
 
