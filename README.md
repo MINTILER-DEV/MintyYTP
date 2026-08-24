@@ -5,9 +5,13 @@ MintyYTP is a Vercel-ready Next.js web app with a server-side video stream proxy
 ## Features
 
 - Custom reusable React video player with play, pause, seek, volume, quality, PiP, fullscreen, and embed support.
+- YDeblockedT-inspired layout with top search, home search, result list, watch view, and related-video sidebar.
+- yt-dlp powered search endpoint, so the app does not need a YouTube Data API key.
 - Server-side `/api/info` endpoint for title, thumbnail, duration, and available qualities.
+- Server-side `/api/search` endpoint for YouTube search results.
 - Server-side `/api/stream` endpoint that streams through `ffmpeg` without writing downloads to disk.
 - Separate video/audio formats are remuxed on the fly with `ffmpeg`.
+- Player timeline shows the total metadata duration and draws buffered/loaded ranges.
 - Quality selector capped at 1080p.
 - Bluish green MintyYTP interface and first-pass SVG icon.
 - `/embed` route for reusable iframe embeds.

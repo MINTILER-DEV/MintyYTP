@@ -7,6 +7,7 @@ type EmbedPageProps = {
     quality?: string;
     title?: string;
     poster?: string;
+    duration?: string;
   }>;
 };
 
@@ -26,6 +27,7 @@ export default async function EmbedPage({ searchParams }: EmbedPageProps) {
         title={params.title ?? "MintyYTP stream"}
         poster={params.poster}
         quality={quality}
+        totalDuration={Number(params.duration) || undefined}
       />
     </main>
   );

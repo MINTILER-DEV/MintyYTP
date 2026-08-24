@@ -21,6 +21,7 @@ type MintyPlayerProps = {
   quality: VideoQuality;
   qualities: readonly VideoQuality[];
   onQualityChange?: (quality: VideoQuality) => void;
+  totalDuration?: number;
   compact?: boolean;
 };
 
@@ -31,6 +32,7 @@ export function MintyPlayer({
   quality,
   qualities,
   onQualityChange,
+  totalDuration,
   compact = false
 }: MintyPlayerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -39,13 +41,17 @@ export function MintyPlayer({
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(0.85);
   const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [streamDuration, setStreamDuration] = useState(0);
+  const [bufferedRanges, setBufferedRanges] = useState<Array<{ start: number; end: number }>>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
+  const timelineDuration = totalDuration || streamDuration;
+  const progressPercent =
+    timelineDuration > 0 ? Math.min(100, (progress / timelineDuration) * 100) : 0;
 
   const progressLabel = useMemo(
-    () => `${formatTime(progress)} / ${formatTime(duration)}`,
-    [duration, progress]
+    () => `${formatTime(progress)} / ${formatTime(timelineDuration)}`,
+    [timelineDuration, progress]
   );
 
   useEffect(() => {
@@ -72,8 +78,22 @@ export function MintyPlayer({
   useEffect(() => {
     setHasStarted(false);
     setProgress(0);
-    setDuration(0);
+    setStreamDuration(0);
+    setBufferedRanges([]);
   }, [src]);
+
+  function refreshBufferedRanges(video: HTMLVideoElement) {
+    const ranges: Array<{ start: number; end: number }> = [];
+
+    for (let index = 0; index < video.buffered.length; index++) {
+      ranges.push({
+        start: video.buffered.start(index),
+        end: video.buffered.end(index)
+      });
+    }
+
+    setBufferedRanges(ranges);
+  }
 
   async function togglePlayback() {
     const video = videoRef.current;
@@ -91,7 +111,7 @@ export function MintyPlayer({
 
   function seek(value: number) {
     const video = videoRef.current;
-    if (!video || !Number.isFinite(video.duration)) {
+    if (!video || !timelineDuration) {
       return;
     }
 
@@ -153,10 +173,18 @@ export function MintyPlayer({
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onLoadedMetadata={(event) => {
-          setDuration(event.currentTarget.duration || 0);
+          const duration = event.currentTarget.duration;
+          setStreamDuration(Number.isFinite(duration) ? duration : 0);
+          refreshBufferedRanges(event.currentTarget);
         }}
+        onDurationChange={(event) => {
+          const duration = event.currentTarget.duration;
+          setStreamDuration(Number.isFinite(duration) ? duration : 0);
+        }}
+        onProgress={(event) => refreshBufferedRanges(event.currentTarget)}
         onTimeUpdate={(event) => {
           setProgress(event.currentTarget.currentTime || 0);
+          refreshBufferedRanges(event.currentTarget);
         }}
         onClick={togglePlayback}
       />
@@ -182,16 +210,39 @@ export function MintyPlayer({
 
       <div className="player-controls">
         <div className="timeline-row">
-          <input
-            aria-label="Seek"
-            type="range"
-            min={0}
-            max={duration || 0}
-            step={0.1}
-            value={Math.min(progress, duration || progress)}
-            onChange={(event) => seek(Number(event.target.value))}
-            disabled={!duration}
-          />
+          <div className="timeline-shell">
+            <div className="timeline-buffer" aria-hidden="true">
+              {bufferedRanges.map((range) => {
+                const left = getPercent(range.start, timelineDuration);
+                const width = Math.max(
+                  0,
+                  getPercent(range.end, timelineDuration) - left
+                );
+
+                return (
+                  <span
+                    key={`${range.start}-${range.end}`}
+                    className="buffer-range"
+                    style={{ left: `${left}%`, width: `${width}%` }}
+                  />
+                );
+              })}
+              <span
+                className="progress-range"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <input
+              aria-label="Seek"
+              type="range"
+              min={0}
+              max={timelineDuration || 0}
+              step={0.1}
+              value={Math.min(progress, timelineDuration || progress)}
+              onChange={(event) => seek(Number(event.target.value))}
+              disabled={!timelineDuration}
+            />
+          </div>
           <span>{progressLabel}</span>
         </div>
 
@@ -292,6 +343,14 @@ export function MintyPlayer({
       </div>
     </div>
   );
+}
+
+function getPercent(value: number, duration: number) {
+  if (!duration || !Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, (value / duration) * 100));
 }
 
 function formatTime(value: number) {

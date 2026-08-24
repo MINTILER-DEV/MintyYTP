@@ -39,6 +39,35 @@ export type YtDlpInfo = {
   }>;
 };
 
+type SearchEntry = {
+  id?: string;
+  url?: string;
+  title?: string;
+  description?: string;
+  duration?: number | null;
+  channel?: string;
+  uploader?: string;
+  thumbnails?: Array<{
+    url?: string;
+    width?: number;
+    height?: number;
+  }>;
+};
+
+type SearchOutput = {
+  entries?: SearchEntry[];
+};
+
+export type VideoSearchResult = {
+  id: string;
+  url: string;
+  title: string;
+  description: string;
+  duration: number | null;
+  channel: string;
+  thumbnail: string;
+};
+
 const youtubeDl = require("youtube-dl-exec") as YtDlpRunner;
 
 export function getFfmpegPath() {
@@ -93,6 +122,41 @@ export async function getStreamUrls(url: string, quality: VideoQuality) {
     .filter(Boolean);
 }
 
+export async function searchVideos(query: string, maxResults = 12) {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    throw new Error("Search for something first.");
+  }
+
+  const safeMax = Math.min(20, Math.max(1, maxResults));
+  const output = (await getYtDlpRunner()(
+    `ytsearch${safeMax}:${trimmed}`,
+    {
+      dumpSingleJson: true,
+      flatPlaylist: true,
+      noWarnings: true,
+      skipDownload: true
+    },
+    {
+      timeout: 60000,
+      killSignal: "SIGKILL",
+      windowsHide: true
+    }
+  )) as SearchOutput;
+
+  return (output.entries ?? [])
+    .filter((entry) => entry.id && entry.url && entry.title)
+    .map((entry) => ({
+      id: entry.id as string,
+      url: entry.url as string,
+      title: entry.title as string,
+      description: entry.description ?? "",
+      duration: entry.duration ?? null,
+      channel: entry.channel ?? entry.uploader ?? "Unknown channel",
+      thumbnail: getBestThumbnail(entry.thumbnails)
+    })) satisfies VideoSearchResult[];
+}
+
 function streamFormatSelector(quality: VideoQuality) {
   const cap = `height<=${quality}`;
 
@@ -103,4 +167,14 @@ function streamFormatSelector(quality: VideoQuality) {
     `best[${cap}]`,
     "best"
   ].join("/");
+}
+
+function getBestThumbnail(thumbnails: SearchEntry["thumbnails"]) {
+  if (!thumbnails?.length) {
+    return "";
+  }
+
+  return [...thumbnails]
+    .sort((a, b) => (b.width ?? 0) - (a.width ?? 0))
+    .find((thumbnail) => thumbnail.url)?.url ?? "";
 }

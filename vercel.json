@@ -3,6 +3,9 @@
     "app/api/info/route.ts": {
       "maxDuration": 60
     },
+    "app/api/search/route.ts": {
+      "maxDuration": 60
+    },
     "app/api/stream/route.ts": {
       "maxDuration": 300
     }

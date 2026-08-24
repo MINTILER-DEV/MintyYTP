@@ -9,6 +9,7 @@ type EmbedClientProps = {
   title: string;
   poster?: string;
   quality: VideoQuality;
+  totalDuration?: number;
 };
 
 export function EmbedClient({
@@ -16,7 +17,8 @@ export function EmbedClient({
   streamSrc,
   title,
   poster,
-  quality
+  quality,
+  totalDuration
 }: EmbedClientProps) {
   if (!sourceUrl) {
     return (
@@ -34,6 +36,7 @@ export function EmbedClient({
       title={title}
       quality={quality}
       qualities={[quality]}
+      totalDuration={totalDuration}
       compact
     />
   );
