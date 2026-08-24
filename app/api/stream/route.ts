@@ -16,13 +16,14 @@ export async function GET(request: Request) {
   try {
     const url = parseVideoUrl(parsedUrl.searchParams.get("url"));
     const quality = normalizeQuality(parsedUrl.searchParams.get("quality"));
+    const start = parseStartTime(parsedUrl.searchParams.get("start"));
     const streamUrls = await getStreamUrls(url, quality);
 
     if (streamUrls.length === 0) {
       throw new Error("yt-dlp did not return a playable stream.");
     }
 
-    const ffmpeg = spawnFfmpeg(streamUrls);
+    const ffmpeg = spawnFfmpeg(streamUrls, start);
 
     request.signal.addEventListener("abort", () => {
       stopProcess(ffmpeg);
@@ -84,7 +85,7 @@ export async function GET(request: Request) {
   }
 }
 
-function spawnFfmpeg(streamUrls: string[]) {
+function spawnFfmpeg(streamUrls: string[], start: number) {
   const ffmpegPath = getFfmpegPath();
   const ffmpegArgs = [
     "-hide_banner",
@@ -100,6 +101,10 @@ function spawnFfmpeg(streamUrls: string[]) {
   ];
 
   for (const input of streamUrls.slice(0, 2)) {
+    if (start > 0) {
+      ffmpegArgs.push("-ss", formatFfmpegTime(start));
+    }
+
     ffmpegArgs.push("-thread_queue_size", "1024", "-i", input);
   }
 
@@ -123,6 +128,19 @@ function spawnFfmpeg(streamUrls: string[]) {
     stdio: ["ignore", "pipe", "pipe"],
     windowsHide: true
   });
+}
+
+function parseStartTime(value: string | null) {
+  const start = Number(value);
+  if (!Number.isFinite(start) || start <= 0) {
+    return 0;
+  }
+
+  return Math.min(start, 24 * 60 * 60);
+}
+
+function formatFfmpegTime(value: number) {
+  return value.toFixed(3);
 }
 
 function stopProcess(process: { killed: boolean; kill: (signal: NodeJS.Signals) => boolean }) {

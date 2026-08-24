@@ -43,7 +43,9 @@ export function MintyPlayer({
   const [progress, setProgress] = useState(0);
   const [streamDuration, setStreamDuration] = useState(0);
   const [bufferedRanges, setBufferedRanges] = useState<TimeRange[]>([]);
-  const [seekableRanges, setSeekableRanges] = useState<TimeRange[]>([]);
+  const [playbackSrc, setPlaybackSrc] = useState(src);
+  const [streamStart, setStreamStart] = useState(0);
+  const [autoplayAfterLoad, setAutoplayAfterLoad] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const timelineDuration = totalDuration || streamDuration;
@@ -81,12 +83,13 @@ export function MintyPlayer({
     setProgress(0);
     setStreamDuration(0);
     setBufferedRanges([]);
-    setSeekableRanges([]);
+    setStreamStart(0);
+    setPlaybackSrc(src);
+    setAutoplayAfterLoad(false);
   }, [src]);
 
   function refreshBufferedRanges(video: HTMLVideoElement) {
-    setBufferedRanges(readTimeRanges(video.buffered));
-    setSeekableRanges(readTimeRanges(video.seekable));
+    setBufferedRanges(readTimeRanges(video.buffered, streamStart, timelineDuration));
   }
 
   async function togglePlayback() {
@@ -104,32 +107,29 @@ export function MintyPlayer({
   }
 
   function seek(value: number) {
-    const video = videoRef.current;
-    if (!video || !timelineDuration) {
+    if (!src || !timelineDuration) {
       return;
     }
 
-    if (!canSeekTo(value, video.currentTime, seekableRanges, bufferedRanges)) {
-      setProgress(video.currentTime || 0);
-      return;
-    }
-
-    if ("fastSeek" in video && typeof video.fastSeek === "function") {
-      video.fastSeek(value);
-    } else {
-      video.currentTime = value;
-    }
+    const target = Math.max(0, Math.min(value, timelineDuration));
+    setStreamStart(target);
+    setProgress(target);
+    setBufferedRanges([]);
+    setPlaybackSrc(withStartParam(src, target));
+    setAutoplayAfterLoad(true);
+    setHasStarted(true);
   }
 
   function restart() {
-    const video = videoRef.current;
-    if (!video) {
+    if (!src) {
       return;
     }
 
-    video.currentTime = 0;
+    setStreamStart(0);
     setProgress(0);
-    void video.play();
+    setBufferedRanges([]);
+    setPlaybackSrc(withStartParam(src, 0));
+    setAutoplayAfterLoad(true);
     setHasStarted(true);
   }
 
@@ -165,10 +165,10 @@ export function MintyPlayer({
       className={`minty-player${compact ? " minty-player-compact" : ""}`}
     >
       <video
-        key={src}
+        key={playbackSrc}
         ref={videoRef}
         className="minty-video"
-        src={src || undefined}
+        src={playbackSrc || undefined}
         poster={poster}
         preload="metadata"
         playsInline
@@ -178,6 +178,11 @@ export function MintyPlayer({
           const duration = event.currentTarget.duration;
           setStreamDuration(Number.isFinite(duration) ? duration : 0);
           refreshBufferedRanges(event.currentTarget);
+
+          if (autoplayAfterLoad) {
+            setAutoplayAfterLoad(false);
+            void event.currentTarget.play();
+          }
         }}
         onDurationChange={(event) => {
           const duration = event.currentTarget.duration;
@@ -185,12 +190,12 @@ export function MintyPlayer({
           refreshBufferedRanges(event.currentTarget);
         }}
         onSeeked={(event) => {
-          setProgress(event.currentTarget.currentTime || 0);
+          setProgress(streamStart + (event.currentTarget.currentTime || 0));
           refreshBufferedRanges(event.currentTarget);
         }}
         onProgress={(event) => refreshBufferedRanges(event.currentTarget)}
         onTimeUpdate={(event) => {
-          setProgress(event.currentTarget.currentTime || 0);
+          setProgress(streamStart + (event.currentTarget.currentTime || 0));
           refreshBufferedRanges(event.currentTarget);
         }}
         onClick={togglePlayback}
@@ -357,37 +362,24 @@ type TimeRange = {
   end: number;
 };
 
-function readTimeRanges(timeRanges: TimeRanges) {
+function readTimeRanges(
+  timeRanges: TimeRanges,
+  offset: number,
+  timelineDuration: number
+) {
   const ranges: TimeRange[] = [];
 
   for (let index = 0; index < timeRanges.length; index++) {
+    const start = offset + timeRanges.start(index);
+    const end = offset + timeRanges.end(index);
+
     ranges.push({
-      start: timeRanges.start(index),
-      end: timeRanges.end(index)
+      start: Math.max(0, Math.min(start, timelineDuration || end)),
+      end: Math.max(0, Math.min(end, timelineDuration || end))
     });
   }
 
   return ranges;
-}
-
-function canSeekTo(
-  value: number,
-  currentTime: number,
-  seekableRanges: TimeRange[],
-  bufferedRanges: TimeRange[]
-) {
-  if (!Number.isFinite(value) || value < 0) {
-    return false;
-  }
-
-  const ranges = seekableRanges.length ? seekableRanges : bufferedRanges;
-  if (!ranges.length) {
-    return Math.abs(value - currentTime) < 0.75;
-  }
-
-  return ranges.some(
-    (range) => value >= Math.max(0, range.start - 0.25) && value <= range.end + 0.25
-  );
 }
 
 function getPercent(value: number, duration: number) {
@@ -396,6 +388,25 @@ function getPercent(value: number, duration: number) {
   }
 
   return Math.max(0, Math.min(100, (value / duration) * 100));
+}
+
+function withStartParam(source: string, start: number) {
+  if (!source) {
+    return "";
+  }
+
+  const [path, hash = ""] = source.split("#", 2);
+  const [base, query = ""] = path.split("?", 2);
+  const params = new URLSearchParams(query);
+
+  if (start > 0) {
+    params.set("start", start.toFixed(3));
+  } else {
+    params.delete("start");
+  }
+
+  const nextQuery = params.toString();
+  return `${base}${nextQuery ? `?${nextQuery}` : ""}${hash ? `#${hash}` : ""}`;
 }
 
 function formatTime(value: number) {
