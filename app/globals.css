@@ -1,17 +1,17 @@
 :root {
-  --ink: #06272d;
-  --ink-soft: #34585f;
-  --muted: #638287;
-  --paper: #ecfbf9;
-  --panel: #fbffff;
+  --ink: #effafa;
+  --ink-soft: #b5c9c9;
+  --muted: #81999b;
+  --paper: #051114;
+  --panel: #09191d;
+  --panel-strong: #0d2227;
   --aqua: #00f0d2;
-  --teal: #03998d;
-  --sea: #043f4d;
+  --teal: #15b8a9;
+  --sea: #12343a;
   --lime: #caff68;
-  --coral: #ff7d67;
-  --line: rgba(0, 240, 210, 0.24);
-  --shadow: 0 0 0 1px rgba(0, 240, 210, 0.18), 0 18px 44px rgba(4, 63, 77, 0.16),
-    0 0 28px rgba(0, 240, 210, 0.12);
+  --line: rgba(0, 240, 210, 0.22);
+  --shadow: 0 0 0 1px rgba(0, 240, 210, 0.14), 0 18px 44px rgba(0, 0, 0, 0.32),
+    0 0 24px rgba(0, 240, 210, 0.09);
 }
 
 * {
@@ -26,7 +26,7 @@ body {
 
 body {
   color: var(--ink);
-  background: #e9fbf8;
+  background: var(--paper);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -89,7 +89,7 @@ a {
 
 .eyebrow {
   margin: 0 0 6px;
-  color: var(--teal);
+  color: var(--aqua);
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0;
@@ -130,8 +130,8 @@ h2 {
   padding: 8px 11px;
   border: 1px solid rgba(0, 240, 210, 0.32);
   border-radius: 4px;
-  color: var(--sea);
-  background: rgba(251, 255, 255, 0.86);
+  color: var(--ink-soft);
+  background: rgba(9, 25, 29, 0.9);
   box-shadow: 0 0 14px rgba(0, 240, 210, 0.1);
   font-size: 0.86rem;
   font-weight: 700;
@@ -152,7 +152,7 @@ h2 {
   aspect-ratio: 16 / 9;
   border: 1px solid rgba(0, 240, 210, 0.32);
   border-radius: 4px;
-  background: #061d24;
+  background: #030b0d;
   box-shadow: var(--shadow);
 }
 
@@ -170,7 +170,7 @@ h2 {
   height: 100%;
   min-height: inherit;
   object-fit: contain;
-  background: #05161c;
+  background: #020809;
 }
 
 .player-empty,
@@ -209,7 +209,7 @@ h2 {
   border: 1px solid rgba(202, 255, 104, 0.42);
   border-radius: 6px;
   color: white;
-  background: rgba(3, 153, 141, 0.92);
+  background: rgba(9, 25, 29, 0.94);
   box-shadow: 0 0 20px rgba(0, 240, 210, 0.28), 0 14px 30px rgba(0, 0, 0, 0.28);
   cursor: pointer;
 }
@@ -223,7 +223,7 @@ h2 {
   gap: 10px;
   padding: 18px;
   color: white;
-  background: rgba(1, 12, 15, 0.86);
+  background: rgba(2, 8, 9, 0.9);
   border-top: 1px solid rgba(0, 240, 210, 0.18);
 }
 
@@ -272,7 +272,7 @@ input[type="range"] {
   border: 1px solid rgba(0, 240, 210, 0.3);
   border-radius: 4px;
   color: white;
-  background: rgba(6, 39, 45, 0.72);
+  background: rgba(9, 25, 29, 0.86);
   box-shadow: 0 0 12px rgba(0, 240, 210, 0.08);
   cursor: pointer;
 }
@@ -302,8 +302,8 @@ input[type="range"] {
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: rgba(251, 255, 255, 0.88);
-  box-shadow: 0 0 22px rgba(0, 240, 210, 0.1), 0 12px 30px rgba(7, 79, 100, 0.08);
+  background: rgba(9, 25, 29, 0.92);
+  box-shadow: 0 0 22px rgba(0, 240, 210, 0.08), 0 12px 30px rgba(0, 0, 0, 0.2);
 }
 
 .url-form {
@@ -312,7 +312,7 @@ input[type="range"] {
 }
 
 .url-form label {
-  color: var(--sea);
+  color: var(--ink-soft);
   font-size: 0.84rem;
   font-weight: 900;
 }
@@ -326,7 +326,7 @@ input[type="range"] {
   padding: 7px 7px 7px 14px;
   border: 1px solid rgba(0, 240, 210, 0.34);
   border-radius: 4px;
-  background: white;
+  background: var(--panel-strong);
   box-shadow: inset 0 0 0 1px rgba(202, 255, 104, 0.12);
 }
 
@@ -336,6 +336,10 @@ input[type="range"] {
   outline: 0;
   color: var(--ink);
   background: transparent;
+}
+
+.url-row input::placeholder {
+  color: var(--muted);
 }
 
 .url-row button,
@@ -349,8 +353,8 @@ input[type="range"] {
   padding: 0 14px;
   border: 1px solid rgba(202, 255, 104, 0.34);
   border-radius: 4px;
-  color: white;
-  background: var(--teal);
+  color: var(--ink);
+  background: var(--panel-strong);
   box-shadow: 0 0 16px rgba(0, 240, 210, 0.16);
   font-weight: 850;
   cursor: pointer;
@@ -362,8 +366,8 @@ input[type="range"] {
 }
 
 .embed-actions a {
-  color: var(--sea);
-  background: rgba(0, 240, 210, 0.12);
+  color: var(--ink);
+  background: var(--panel-strong);
 }
 
 .video-details {
@@ -385,7 +389,7 @@ input[type="range"] {
 
 .form-error {
   margin: 0;
-  color: #9e2d1d;
+  color: #ff9b8c;
   font-size: 0.92rem;
   font-weight: 700;
 }
@@ -398,7 +402,7 @@ input[type="range"] {
   width: 100vw;
   height: 100vh;
   margin: 0;
-  background: #04171c;
+  background: var(--paper);
 }
 
 .embed-empty {
