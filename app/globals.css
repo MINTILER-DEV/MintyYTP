@@ -1,16 +1,17 @@
 :root {
-  --ink: #0a2730;
-  --ink-soft: #34525a;
-  --muted: #6d8589;
-  --paper: #f3fbfa;
-  --panel: #ffffff;
-  --aqua: #16b8a6;
-  --teal: #057a77;
-  --sea: #074f64;
-  --lime: #b7e87b;
+  --ink: #06272d;
+  --ink-soft: #34585f;
+  --muted: #638287;
+  --paper: #ecfbf9;
+  --panel: #fbffff;
+  --aqua: #00f0d2;
+  --teal: #03998d;
+  --sea: #043f4d;
+  --lime: #caff68;
   --coral: #ff7d67;
-  --line: rgba(10, 39, 48, 0.12);
-  --shadow: 0 22px 60px rgba(7, 79, 100, 0.18);
+  --line: rgba(0, 240, 210, 0.24);
+  --shadow: 0 0 0 1px rgba(0, 240, 210, 0.18), 0 18px 44px rgba(4, 63, 77, 0.16),
+    0 0 28px rgba(0, 240, 210, 0.12);
 }
 
 * {
@@ -25,9 +26,7 @@ body {
 
 body {
   color: var(--ink);
-  background:
-    radial-gradient(circle at top left, rgba(183, 232, 123, 0.3), transparent 28rem),
-    linear-gradient(140deg, #edf9f8 0%, #dff3f1 44%, #f8fbf9 100%);
+  background: #e9fbf8;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -85,7 +84,7 @@ a {
   width: 72px;
   height: 72px;
   flex: 0 0 auto;
-  filter: drop-shadow(0 14px 22px rgba(5, 122, 119, 0.22));
+  filter: drop-shadow(0 0 12px rgba(0, 240, 210, 0.34));
 }
 
 .eyebrow {
@@ -129,10 +128,11 @@ h2 {
   gap: 7px;
   min-height: 36px;
   padding: 8px 11px;
-  border: 1px solid rgba(5, 122, 119, 0.18);
-  border-radius: 999px;
+  border: 1px solid rgba(0, 240, 210, 0.32);
+  border-radius: 4px;
   color: var(--sea);
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(251, 255, 255, 0.86);
+  box-shadow: 0 0 14px rgba(0, 240, 210, 0.1);
   font-size: 0.86rem;
   font-weight: 700;
   white-space: nowrap;
@@ -150,11 +150,9 @@ h2 {
   overflow: hidden;
   min-height: 340px;
   aspect-ratio: 16 / 9;
-  border: 1px solid rgba(4, 46, 58, 0.16);
-  border-radius: 8px;
-  background:
-    linear-gradient(135deg, rgba(22, 184, 166, 0.14), rgba(183, 232, 123, 0.16)),
-    #061d24;
+  border: 1px solid rgba(0, 240, 210, 0.32);
+  border-radius: 4px;
+  background: #061d24;
   box-shadow: var(--shadow);
 }
 
@@ -208,10 +206,11 @@ h2 {
   height: 76px;
   translate: -50% -50%;
   place-items: center;
-  border-radius: 50%;
+  border: 1px solid rgba(202, 255, 104, 0.42);
+  border-radius: 6px;
   color: white;
-  background: rgba(5, 122, 119, 0.88);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
+  background: rgba(3, 153, 141, 0.92);
+  box-shadow: 0 0 20px rgba(0, 240, 210, 0.28), 0 14px 30px rgba(0, 0, 0, 0.28);
   cursor: pointer;
 }
 
@@ -224,7 +223,8 @@ h2 {
   gap: 10px;
   padding: 18px;
   color: white;
-  background: linear-gradient(180deg, transparent, rgba(1, 12, 15, 0.88));
+  background: rgba(1, 12, 15, 0.86);
+  border-top: 1px solid rgba(0, 240, 210, 0.18);
 }
 
 .timeline-row,
@@ -269,10 +269,11 @@ input[type="range"] {
   min-width: 42px;
   height: 38px;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border: 1px solid rgba(0, 240, 210, 0.3);
+  border-radius: 4px;
   color: white;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(6, 39, 45, 0.72);
+  box-shadow: 0 0 12px rgba(0, 240, 210, 0.08);
   cursor: pointer;
 }
 
@@ -300,9 +301,9 @@ input[type="range"] {
 .video-details {
   padding: 18px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 12px 34px rgba(7, 79, 100, 0.08);
+  border-radius: 4px;
+  background: rgba(251, 255, 255, 0.88);
+  box-shadow: 0 0 22px rgba(0, 240, 210, 0.1), 0 12px 30px rgba(7, 79, 100, 0.08);
 }
 
 .url-form {
@@ -323,9 +324,10 @@ input[type="range"] {
   align-items: center;
   min-height: 54px;
   padding: 7px 7px 7px 14px;
-  border: 1px solid rgba(5, 122, 119, 0.22);
-  border-radius: 8px;
+  border: 1px solid rgba(0, 240, 210, 0.34);
+  border-radius: 4px;
   background: white;
+  box-shadow: inset 0 0 0 1px rgba(202, 255, 104, 0.12);
 }
 
 .url-row input {
@@ -345,9 +347,11 @@ input[type="range"] {
   gap: 8px;
   min-height: 40px;
   padding: 0 14px;
-  border-radius: 8px;
+  border: 1px solid rgba(202, 255, 104, 0.34);
+  border-radius: 4px;
   color: white;
   background: var(--teal);
+  box-shadow: 0 0 16px rgba(0, 240, 210, 0.16);
   font-weight: 850;
   cursor: pointer;
 }
@@ -359,7 +363,7 @@ input[type="range"] {
 
 .embed-actions a {
   color: var(--sea);
-  background: rgba(22, 184, 166, 0.12);
+  background: rgba(0, 240, 210, 0.12);
 }
 
 .video-details {
