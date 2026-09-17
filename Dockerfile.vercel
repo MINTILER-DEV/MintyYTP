@@ -1,0 +1,35 @@
+# Use a Node.js base image that includes Debian's package manager (apt-get)
+FROM node:20-bullseye
+
+# Install system dependencies: Python, pip, and FFmpeg (required for yt-dlp)
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install yt-dlp via pip
+RUN pip3 install yt-dlp
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy package files first to leverage Docker's layer caching
+COPY package*.json ./
+RUN npm install
+
+# Copy the rest of your application code
+COPY . .
+
+# Build your TypeScript code
+RUN npm run build
+
+# Set the production environment
+ENV NODE_ENV=production
+
+# Your app must listen on the port provided by Vercel's PORT environment variable.
+# Vercel routes traffic to port 80 by default if not specified.
+EXPOSE 3000
+
+# Start your application
+CMD ["npm", "start"]
